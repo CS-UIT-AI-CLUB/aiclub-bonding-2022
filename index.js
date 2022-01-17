@@ -22,7 +22,6 @@ client.once('ready', () => {
 	console.log('Ready!');
 });
 
-
 client.once('reconnecting', () => {
 	console.log('Reconnecting!');
 });

@@ -4,7 +4,7 @@ const moment = require("moment");
 // const
 const team_data_path_prefix = "./challenge-data/team-data/";
 const game_data_path_prefix = "./challenge-data/game-data/";
-const hint_time_distance_minutes = 1;
+const hint_time_distance_minutes = 5;
 const millisec = 60000;
 const max_challenge = 5;
 
@@ -14,7 +14,12 @@ const INCORRECT_ANSWER = "Your answer is incorrect";
 const NEXT_CHALLENGE = "Moving to the next challenge!!!...";
 const GAME_FINISHED = "Game finished, congratulations!";
 
-// utils
+// utils functions
+function formatAnswer(str) {
+    str = str.replace(/\s+/g,' ').trim();
+    return str.toLowerCase();
+}
+
 function saveTeamInfo(team_info) {
     var data_path = team_data_path_prefix + `${team_info.team_id}.json`;
     console.log(data_path, team_info);
@@ -33,16 +38,13 @@ function loadGameInfo(challengeID) {
     return fs.readJSONSync(data_path);
 }
 
-// game 1
-
 function startChallenge(challengeID, team_info, message) {
     // challenge id must be an int
     message.channel.send("Challenge #" + challengeID.toString());
 
     game_info = loadGameInfo(challengeID);
-    game_info.challenge_title.forEach(title => {
-        message.channel.send(title);
-    });
+    
+    message.channel.send({files: [game_info.challenge_title]}); 
 
     team_info.current_challenge = challengeID;
     const currentdate = new Date();
@@ -68,7 +70,7 @@ function checkResult(challengeID, team_answer, team_info, message) {
     else {
         game_info = loadGameInfo(challengeID);
         team_info.team_attempt_count += 1;
-        if (game_info.challenge_answer.toLowerCase() == team_answer.toLowerCase()) {
+        if (formatAnswer(game_info.challenge_answer) == formatAnswer(team_answer)) {
             if (challengeID == max_challenge) {
                 const currentdate = new Date();
                 // if finish then push the finishing time to team_timestamps
@@ -108,7 +110,7 @@ function showHint(game_info, hintID, message) {
 module.exports = {
 	name: 'bonding',
 	description: 'AI Club bonding bot',
-	execute(message, client) {
+	execute(message) {
         const user_args = message.content.split(" ");
 
         if (user_args.length == 1) {
@@ -170,7 +172,8 @@ module.exports = {
                                 const currentTime = currentdate.getTime();
                                 var duration_milis = currentTime - team_info.team_timestamps.at(-1);
                                 var duration_minutes = duration_milis / millisec;
-                                var maxHint = Math.min(Math.floor(duration_minutes / hint_time_distance_minutes), game_info.challenge_hints.length); // max hint can be used at this time
+                                // max hint can be used at this time
+                                var maxHint = Math.min(Math.floor(duration_minutes / hint_time_distance_minutes), game_info.challenge_hints.length);
                                 if (team_info.usedHints < maxHint) {
                                     team_info.usedHints += 1;
                                     showHint(game_info, team_info.usedHints, message);
@@ -202,7 +205,7 @@ module.exports = {
                     else {
                         var team_answer = "";
                         for (var i = 2; i < user_args.length; i++)
-                            team_answer += user_args[i];
+                            team_answer += (user_args[i] + (i != user_args.length - 1 ? " " : ""));
                         team_info = loadTeamInfo(message);
                         challengeID = team_info.current_challenge;
                         if (challengeID > max_challenge)
@@ -216,7 +219,7 @@ module.exports = {
                 default: { 
                     message.reply("An unknown command, type `!bonding help` for usage");
                 }
-            } 
+            }
         }
 	}
 };
