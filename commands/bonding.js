@@ -47,6 +47,7 @@ function startChallenge(challengeID, team_info, message) {
     message.channel.send({files: [game_info.challenge_title]}); 
 
     team_info.current_challenge = challengeID;
+    team_info.usedHints = 0;
     const currentdate = new Date();
     team_info.team_timestamps.push(currentdate.getTime());
     saveTeamInfo(team_info);
@@ -114,7 +115,7 @@ module.exports = {
         const user_args = message.content.split(" ");
 
         if (user_args.length == 1) {
-            message.reply("Type !bonding help for usage");
+            message.reply("Type `!bonding help` for usage");
         }
         else {
             var requested_command = user_args[1];
@@ -122,7 +123,8 @@ module.exports = {
                 case "help": {
                     message.channel.send("Type `!bonding start` to start the game");
                     message.channel.send("Type `!bonding hint` to get the hint of the current challenge");
-                    message.channel.send("Type `!bonding answer` to give your answer (if you have multiple answers, submit using the following syntax: `!bonding answer <ans1>;<ans2>;<ans3>`");
+                    message.channel.send("Type `!bonding answer` to submit your answer (if you have multiple answers, submit using the following syntax: `!bonding answer <ans1>;<ans2>;<ans3>`");
+                    message.channel.send("Note: If your answer is correct, I will automatically show the next challenge (if available).");
                     break;
                 }
                 case "team-register": {
